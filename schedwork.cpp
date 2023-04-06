@@ -19,26 +19,56 @@ using namespace std;
 static const Worker_T INVALID_ID = (unsigned int)-1;
 
 
-// Add prototypes for any helper functions here
+bool scheduleHelper(
+    const AvailabilityMatrix& avail,
+    const size_t dailyNeed,
+    const size_t maxShifts,
+    DailySchedule& sched,
+    size_t day,
+    map<Worker_T, int>& workerShifts
+) {
+    if (day == sched.size()) {
+        return true;
+    }
 
+    for (Worker_T worker = 0; worker < avail[day].size(); worker++) {
+        if (avail[day][worker] && workerShifts[worker] < (int) maxShifts) {
+            sched[day].push_back(worker);
+            workerShifts[worker]++;
 
-// Add your implementation of schedule() and other helper functions here
+            if (sched[day].size() == dailyNeed) {
+                return scheduleHelper(avail, dailyNeed, maxShifts, sched, day + 1, workerShifts);
+            } else {
+                return scheduleHelper(avail, dailyNeed, maxShifts, sched, day, workerShifts);
+            }
+
+            sched[day].pop_back();
+            workerShifts[worker]--;
+        }
+    }
+    return false;
+}
 
 bool schedule(
     const AvailabilityMatrix& avail,
     const size_t dailyNeed,
     const size_t maxShifts,
     DailySchedule& sched
-)
-{
+) {
     if(avail.size() == 0U){
         return false;
     }
     sched.clear();
-    // Add your code below
 
+    const size_t n = avail.size(); // NUMBER OF DAYS
+    const size_t k = avail[0].size(); // NUMBER OF PEOPLE NEEDED A DAY
 
+    sched.resize(n, vector<Worker_T>());
+    map<Worker_T, int> workerShifts;
 
+    for (Worker_T worker = 0; worker < k; worker++) {
+        workerShifts[worker] = 0;
+    }
 
+    return scheduleHelper(avail, dailyNeed, maxShifts, sched, 0, workerShifts);
 }
-
